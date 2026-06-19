@@ -67,24 +67,14 @@ export default function App() {
   const fetchTelemetry = async () => {
     try {
       const histResp = await fetch(`${API_BASE}/history`);
-      if (histResp.ok) {
-        const histData = await histResp.json();
-        setHistory(histData);
-      } else {
-        setHistory([]);
-      }
+      const histData = await histResp.json();
+      setHistory(histData);
 
       const analResp = await fetch(`${API_BASE}/analytics`);
-      if (analResp.ok) {
-        const analData = await analResp.json();
-        setAnalytics(analData);
-      } else {
-        setAnalytics(null);
-      }
+      const analData = await analResp.json();
+      setAnalytics(analData);
     } catch (err) {
       console.error("Failed to sync database logs:", err);
-      setHistory([]);
-      setAnalytics(null);
     }
   };
 
