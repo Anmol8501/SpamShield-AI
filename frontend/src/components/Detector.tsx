@@ -15,6 +15,8 @@ interface OCRMetadata {
   char_count: number;
 }
 
+const API_BASE = import.meta.env.VITE_API_URL || (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? "http://localhost:5000" : "https://spamshield-ai-tfve.onrender.com");
+
 export default function Detector({ onPredictionSuccess, addToast, injectedExample, clearInjectedExample }: DetectorProps) {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -101,6 +103,12 @@ export default function Detector({ onPredictionSuccess, addToast, injectedExampl
       return;
     }
 
+    // Verify file size limit (Max 5 MB)
+    if (file.size > 5 * 1024 * 1024) {
+      addToast("File size exceeds maximum 5 MB upload limit.", "error");
+      return;
+    }
+
     setScanningImage(true);
     setUploadProgress(15);
     setResult(null);
@@ -120,7 +128,7 @@ export default function Detector({ onPredictionSuccess, addToast, injectedExampl
     formData.append("image", file);
 
     try {
-      const response = await fetch("http://localhost:5000/ocr", {
+      const response = await fetch(`${API_BASE}/ocr`, {
         method: "POST",
         body: formData,
       });
@@ -169,7 +177,7 @@ export default function Detector({ onPredictionSuccess, addToast, injectedExampl
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch("http://localhost:5000/predict", {
+      const response = await fetch(`${API_BASE}/predict`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: textToScan, source }),

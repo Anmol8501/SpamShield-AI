@@ -35,6 +35,8 @@ interface AnalyticsData {
   }[];
 }
 
+const API_BASE = import.meta.env.VITE_API_URL || (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" ? "http://localhost:5000" : "https://spamshield-ai-tfve.onrender.com");
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<string>("home");
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
@@ -64,15 +66,25 @@ export default function App() {
   // Fetch telemetry from SQLite backend
   const fetchTelemetry = async () => {
     try {
-      const histResp = await fetch("http://localhost:5000/history");
-      const histData = await histResp.json();
-      setHistory(histData);
+      const histResp = await fetch(`${API_BASE}/history`);
+      if (histResp.ok) {
+        const histData = await histResp.json();
+        setHistory(histData);
+      } else {
+        setHistory([]);
+      }
 
-      const analResp = await fetch("http://localhost:5000/analytics");
-      const analData = await analResp.json();
-      setAnalytics(analData);
+      const analResp = await fetch(`${API_BASE}/analytics`);
+      if (analResp.ok) {
+        const analData = await analResp.json();
+        setAnalytics(analData);
+      } else {
+        setAnalytics(null);
+      }
     } catch (err) {
       console.error("Failed to sync database logs:", err);
+      setHistory([]);
+      setAnalytics(null);
     }
   };
 
@@ -148,7 +160,7 @@ export default function App() {
 
   const handleClearHistory = async () => {
     try {
-      const res = await fetch("http://localhost:5000/history", { method: "DELETE" });
+      const res = await fetch(`${API_BASE}/history`, { method: "DELETE" });
       if (res.ok) {
         setHistory([]);
         setAnalytics(null);
@@ -162,7 +174,7 @@ export default function App() {
 
   const handleDeleteHistoryItem = async (id: number) => {
     try {
-      const res = await fetch(`http://localhost:5000/history/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE}/history/${id}`, { method: "DELETE" });
       if (res.ok) {
         addToast("Log record deleted from database", "info");
         fetchTelemetry();
